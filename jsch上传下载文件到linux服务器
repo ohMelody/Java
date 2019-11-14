@@ -1,0 +1,14 @@
+//已经连接到linux服务器，连接后的代码
+
+ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
+channel.connect();
+//上传文件
+File file = new File("需要上传的本地文件");  //C:\\Users\\endiozhang\\Downloads\\Python-3.6.1.tgz
+InputStream inputStream = new FileInputStream(file);
+channel.put(inputStream, "上传至linux文件");  //data/work/endiozhang/Python-3.6.1.tgz
+//下载文件
+OutputStream out = new FileOutputStream("下载至文件名称");  //C:\\Users\\endiozhang\\Downloads\\Python-3.6.1.tgz
+channel.get("需要下载的文件地址", out);
+//关闭流
+inputStream.close();
+out.close();
