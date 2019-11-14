@@ -1,0 +1,139 @@
+//keyboard-interactive authentication
+//首先建例一个MyUserInfo类
+import com.jcraft.jsch.UIKeyboardInteractive;
+import com.jcraft.jsch.UserInfo;
+public class MyUserInfo implements UserInfo, UIKeyboardInteractive {
+
+    @Override
+    public String getPassphrase() {
+        // TODO Auto-generated method stub
+        System.out.println("MyUserInfo.getPassphrase()");
+        return null;
+    }
+
+    @Override
+    public String getPassword() {
+        // TODO Auto-generated method stub
+        System.out.println("MyUserInfo.getPassword()");
+        return null;
+    }
+
+    @Override
+    public boolean promptPassphrase(String arg0) {
+        // TODO Auto-generated method stub
+        System.out.println("MyUserInfo.promptPassphrase()");
+        System.out.println(arg0);
+        return false;
+    }
+
+    @Override
+    public boolean promptPassword(String arg0) {
+        // TODO Auto-generated method stub
+        System.out.println("MyUserInfo.promptPassword()");
+        System.out.println(arg0);
+        return false;
+    }
+
+    @Override
+    public boolean promptYesNo(String arg0) {
+        // TODO Auto-generated method stub'
+        System.out.println("MyUserInfo.promptYesNo()");
+        System.out.println(arg0);
+        if (arg0.contains("The authenticity of host")) {
+            return true;
+        }
+        return true;
+    }
+
+    @Override
+    public void showMessage(String arg0) {
+        // TODO Auto-generated method stub
+        System.out.println("MyUserInfo.showMessage()");
+    }
+
+    @Override
+    public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt, boolean[] echo) {
+        return new String[0];
+    }
+}
+
+//其次建立连接类
+public class ConnectSSH {
+        //远程主机的ip地址
+        private String ip;
+        //远程主机登录用户名
+        private String username;
+        //远程主机的登录密码
+        private String password;
+        //设置ssh连接的远程端口
+        public static final int DEFAULT_SSH_PORT = 32000;
+
+        public ConnectSSH(final String ip, final String username, final String password) {
+            this.ip = ip;
+            this.username = username;
+            this.password = password;
+        }
+        /**
+         * 执行shell命令
+         * @param command
+         * @return
+         */
+        public int execute(final String command) {
+            JSch jsch = new JSch();
+            MyUserInfo userInfo = new MyUserInfo();
+
+            try {
+                //创建session并且打开连接，因为创建session之后要主动打开连接
+                Session session = jsch.getSession(username, ip, DEFAULT_SSH_PORT);
+                session.setPassword(password);
+                session.setUserInfo(userInfo);
+                session.connect();
+
+                //打开通道，设置通道类型，和执行的命令
+                Channel channel = session.openChannel("exec");
+                ChannelExec channelExec = (ChannelExec)channel;
+                channelExec.setCommand(command);
+
+                channelExec.setInputStream(null);
+                BufferedReader input = new BufferedReader(new InputStreamReader
+                        (channelExec.getInputStream()));
+                StringBuffer sb = new StringBuffer();
+                channelExec.connect();
+
+                //接收远程服务器执行命令的结果
+                String line;
+                while ((line = input.readLine()) != null) {
+                    list.add(line);
+                    System.out.println(line);
+                }
+
+                input.close();
+
+                // 关闭通道
+                channelExec.disconnect();
+                //关闭session
+                session.disconnect();
+
+            } catch (JSchException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return returnCode;
+        }
+        /**
+         * get stdout
+         * @return
+         */
+
+
+        public static void main(final String [] args) {
+            ConnectSSH shell = new ConnectSSH("连接host", "用户名", "用户密码");
+            //过滤日期文件
+            shell.execute("shell命令");
+
+        }
+
+}
+
